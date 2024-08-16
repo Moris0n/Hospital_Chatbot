@@ -44,4 +44,4 @@ chat_model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 output_parser = StrOutputParser()
 
-review_chain = review_prompt_template | chat_model | output_parser
+review_chain = review_prompt_template | chat_model | output_parserpytho
