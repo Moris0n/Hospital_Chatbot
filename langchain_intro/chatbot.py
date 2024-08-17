@@ -7,8 +7,10 @@ from langchain.prompts import (
     ChatPromptTemplate,
 )
 from langchain_core.output_parsers import StrOutputParser
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain.schema.runnable import RunnablePassthrough
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(encoding='utf-8')
 
 review_template_str = """Your job is to use patient
 reviews to answer questions about their experience at
@@ -44,4 +46,20 @@ chat_model = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
 output_parser = StrOutputParser()
 
-review_chain = review_prompt_template | chat_model | output_parserpytho
+ELASTICSEARCH_URL = "http://localhost:9200"
+INDEX_NAME = "reviews_index"
+
+elastic_vector_search = ElasticsearchStore(
+    es_url=ELASTICSEARCH_URL,
+    index_name=INDEX_NAME,
+    embedding= HuggingFaceEmbeddings(),
+)
+
+reviews_retriever  = elastic_vector_search.as_retriever(k=10)
+
+review_chain = (
+    {"context": reviews_retriever, "question": RunnablePassthrough()}
+    | review_prompt_template
+    | chat_model
+    | StrOutputParser()
+)

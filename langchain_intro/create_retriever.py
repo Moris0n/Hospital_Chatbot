@@ -1,13 +1,12 @@
 import pandas as pd
 from uuid import uuid4
+import os
+import dotenv
 
 from langchain_elasticsearch import ElasticsearchStore
 from langchain_core.documents import Document
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from elasticsearch import Elasticsearch
-
-import os
-import dotenv
-import sentence_transformers
 
 dotenv.load_dotenv(encoding='utf-8')
 
@@ -20,11 +19,14 @@ INDEX_NAME = "reviews_index"
 # Initialize Elasticsearch client
 es_client = Elasticsearch(
     hosts=[ELASTICSEARCH_URL],  
-    http_auth=("elastic", "changeme")  
+    #http_auth=("elastic", "changeme")  
 )
 
 # Check if the index exists, and delete it if it does
 es_client.indices.delete(index=INDEX_NAME, ignore_unavailable=True)
+
+# Defining the embedding model
+embeddings = HuggingFaceEmbeddings()
 
 # Load CSV data with pandas, ensuring UTF-8 encoding
 df = pd.read_csv(REVIEWS_CSV_PATH, encoding='utf-8')
@@ -33,11 +35,9 @@ df = pd.read_csv(REVIEWS_CSV_PATH, encoding='utf-8')
 elastic_vector_search = ElasticsearchStore(
     es_url=ELASTICSEARCH_URL,
     index_name=INDEX_NAME,
+    embedding=embeddings,
     es_user="elastic",
     es_password="changeme",
-    strategy=ElasticsearchStore.ApproxRetrievalStrategy(
-        query_model_id="sentence-transformers/all-MiniLM-L6-v2"
-    ),
 )
 
 # Function to create documents with UUID, content, and metadata
