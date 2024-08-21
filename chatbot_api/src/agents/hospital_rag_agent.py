@@ -12,8 +12,6 @@ from tools.wait_times import (
 )
 from operator import itemgetter
 from pydantic import BaseModel
-from typing import Any
-
 
 HOSPITAL_AGENT_MODEL = os.getenv("HOSPITAL_AGENT_MODEL")
 
@@ -29,6 +27,7 @@ review_tool = reviews_vector_chain.as_tool(name="Experiences",
         "Are patients satisfied with their care?", the input should be
         "Are patients satisfied with their care?".
         """,)
+
 graph_tool = hospital_cypher_chain.as_tool(name="Graph",
         description="""Useful for answering questions about patients,
         physicians, hospitals, insurance payers, patient review
